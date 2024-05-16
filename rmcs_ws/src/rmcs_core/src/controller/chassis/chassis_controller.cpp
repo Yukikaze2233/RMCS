@@ -1,8 +1,11 @@
 #include <limits>
+#include <memory>
 #include <numbers>
 
 #include <eigen3/Eigen/Dense>
+#include <geometry_msgs/msg/pose2_d.hpp>
 #include <rclcpp/node.hpp>
+#include <rclcpp/subscription.hpp>
 #include <rmcs_executor/component.hpp>
 
 #include "rmcs_core/msgs.hpp"
@@ -36,6 +39,13 @@ public:
             "/chassis/right_back_wheel/control_velocity", right_back_control_velocity_, nan);
         register_output(
             "/chassis/right_front_wheel/control_velocity", right_front_control_velocity_, nan);
+
+        decision_control_subscription_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
+            "/sentry/control/forward/velocity", 10,
+            [this](const geometry_msgs::msg::Pose2D::UniquePtr& msg) -> void {
+                decision_control_velocity_.x() = msg->x;
+                decision_control_velocity_.y() = msg->y;
+            });
     }
 
     void update() override {
@@ -61,10 +71,22 @@ public:
                 }
             }
 
-            auto keyboard_move =
-                Eigen::Vector2d{0.5 * (keyboard.w - keyboard.s), 0.5 * (keyboard.a - keyboard.d)};
+            auto keyboard_move = Eigen::Vector2d{0, 0};
+            auto decision_move = Eigen::Vector2d{0, 0};
+
+            if (switch_left != Switch::DOWN && switch_right == Switch::UP) {
+                // constexpr double wheel_radius = 0.07771;
+                decision_move = {decision_control_velocity_.x(), decision_control_velocity_.y()};
+
+            } else {
+                keyboard_move = Eigen::Vector2d{
+                    0.5 * (keyboard.w - keyboard.s), 0.5 * (keyboard.a - keyboard.d)};
+            }
+
             update_wheel_velocities(
-                Eigen::Rotation2Dd{*gimbal_yaw_angle_} * (*joystick_right_ + keyboard_move));
+                Eigen::Rotation2Dd{*gimbal_yaw_angle_}
+                * (*joystick_right_ + keyboard_move + decision_move));
+
         } while (false);
 
         last_switch_right_ = switch_right;
@@ -152,6 +174,10 @@ private:
     OutputInterface<double> left_back_control_velocity_;
     OutputInterface<double> right_back_control_velocity_;
     OutputInterface<double> right_front_control_velocity_;
+
+    std::shared_ptr<rclcpp::Subscription<geometry_msgs::msg::Pose2D>>
+        decision_control_subscription_;
+    Eigen::Vector2d decision_control_velocity_;
 };
 
 } // namespace rmcs_core::controller::chassis

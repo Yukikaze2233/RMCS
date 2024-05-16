@@ -20,3 +20,6 @@
 [submodule "rmcs_ws/src/fast_lio"]
 	path = rmcs_ws/src/fast_lio
 	url = https://github.com/Alliance-Algorithm/fast_lio.git
+[submodule "rmcs_ws/src/tlarc"]
+	path = rmcs_ws/src/tlarc
+	url = https://github.com/Alliance-Algorithm/TLARC.git

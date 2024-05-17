@@ -71,21 +71,20 @@ public:
                 }
             }
 
-            auto keyboard_move = Eigen::Vector2d{0, 0};
-            auto decision_move = Eigen::Vector2d{0, 0};
+            auto move = Eigen::Vector2d{0, 0};
 
             if (switch_left != Switch::DOWN && switch_right == Switch::UP) {
                 // constexpr double wheel_radius = 0.07771;
-                decision_move = {decision_control_velocity_.x(), decision_control_velocity_.y()};
-
+                move = Eigen::Rotation2Dd{*gimbal_yaw_angle_}
+                     * Eigen::Vector2d{
+                         decision_control_velocity_.x(), decision_control_velocity_.y()};
             } else {
-                keyboard_move = Eigen::Vector2d{
+                auto keyboard_move = Eigen::Vector2d{
                     0.5 * (keyboard.w - keyboard.s), 0.5 * (keyboard.a - keyboard.d)};
+                move = Eigen::Rotation2Dd{*gimbal_yaw_angle_} * (*joystick_right_ + keyboard_move);
             }
 
-            update_wheel_velocities(
-                Eigen::Rotation2Dd{*gimbal_yaw_angle_}
-                * (*joystick_right_ + keyboard_move + decision_move));
+            update_wheel_velocities(move);
 
         } while (false);
 

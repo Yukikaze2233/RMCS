@@ -22,10 +22,10 @@ public:
               rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {
 
-        friction_working_velocity         = get_parameter("friction_velocity").as_double();
-        double shot_frequency             = get_parameter("shot_frequency").as_double();
+        friction_working_velocity        = get_parameter("friction_velocity").as_double();
+        double shot_frequency            = get_parameter("shot_frequency").as_double();
         bullet_feeder_working_velocity   = shot_frequency / 8 * 2 * std::numbers::pi;
-        double safe_shot_frequency        = get_parameter("safe_shot_frequency").as_double();
+        double safe_shot_frequency       = get_parameter("safe_shot_frequency").as_double();
         bullet_feeder_safe_shot_velocity = safe_shot_frequency / 8 * 2 * std::numbers::pi;
 
         register_input("/remote/switch/right", switch_right_);
@@ -69,6 +69,7 @@ public:
                 } else if (last_switch_left_ == Switch::MIDDLE && switch_left == Switch::UP) {
                     friction_enabled_ = !friction_enabled_;
                 }
+
                 bullet_feeder_enabled_ = mouse.left || switch_left == Switch::DOWN;
             }
             update_friction_velocities();
@@ -84,8 +85,8 @@ private:
         friction_enabled_                 = false;
         *left_friction_control_velocity_  = nan;
         *right_friction_control_velocity_ = nan;
-        bullet_feeder_enabled_           = false;
-        *bullet_feeder_control_velocity_ = nan;
+        bullet_feeder_enabled_            = false;
+        *bullet_feeder_control_velocity_  = nan;
     }
 
     void update_muzzle_heat() {
@@ -159,8 +160,7 @@ private:
             } else {
                 if (bullet_feeder_working_status_ == 500) {
                     enter_jam_protection();
-                    RCLCPP_INFO(
-                        logger_, "Instant jammed! Count = %d", bullet_feeder_jammed_count_);
+                    RCLCPP_INFO(logger_, "Instant jammed! Count = %d", bullet_feeder_jammed_count_);
                 } else if (bullet_feeder_working_status_ > 0) {
                     bullet_feeder_working_status_ = 0;
                 } else if (bullet_feeder_working_status_ > -500) {

@@ -7,12 +7,9 @@ rmcs_executor:
       - rmcs_core::hardware::ec::Command -> ec_command
       - rmcs_core::broadcaster::TfBroadcaster -> tf_broadcaster
 
-
 ec_status:
   ros__parameters:
     path: /dev/ttyACM0
-<<<<<<< HEAD
-=======
 
 ugas:
   ros__parameters:
@@ -21,4 +18,3 @@ ugas:
     buff_predict_duration: 200
     yaw_error: 0.025
     pitch_error: -0.015
->>>>>>> 377b5c8 (:zap: ugas param)

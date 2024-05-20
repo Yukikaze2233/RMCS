@@ -23,3 +23,6 @@
 [submodule "rmcs_ws/src/tlarc"]
 	path = rmcs_ws/src/tlarc
 	url = https://github.com/Alliance-Algorithm/TLARC.git
+[submodule "rmcs_ws/src/livox_ros_driver2"]
+	path = rmcs_ws/src/livox_ros_driver2
+	url = https://github.com/Alliance-Algorithm/livox_ros_driver2.git

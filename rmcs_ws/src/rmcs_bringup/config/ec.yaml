@@ -11,3 +11,14 @@ rmcs_executor:
 ec_status:
   ros__parameters:
     path: /dev/ttyACM0
+<<<<<<< HEAD
+=======
+
+ugas:
+  ros__parameters:
+    exposure_time: 3
+    armor_predict_duration: 1000
+    buff_predict_duration: 200
+    yaw_error: 0.025
+    pitch_error: -0.015
+>>>>>>> 377b5c8 (:zap: ugas param)

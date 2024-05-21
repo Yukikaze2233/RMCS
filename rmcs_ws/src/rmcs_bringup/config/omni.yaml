@@ -32,8 +32,6 @@ rmcs_executor:
 
       - ugas::Component -> ugas
 
-      - rmcs_core::hardware::referee::UI -> referee_ui
-
 cboard_status:
   ros__parameters:
     path: /dev/ttyACM0

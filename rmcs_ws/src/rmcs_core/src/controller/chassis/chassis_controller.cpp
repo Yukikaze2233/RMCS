@@ -63,12 +63,16 @@ public:
             }
 
             if (switch_left != Switch::DOWN) {
+                auto new_spinning_mode = spinning_mode_;
                 if (switch_right == Switch::MIDDLE) {
-                    spinning_mode_ |= keyboard.c;
-                    spinning_mode_ &= !(keyboard.ctrl && keyboard.c);
+                    new_spinning_mode |= keyboard.c;
+                    new_spinning_mode &= !(keyboard.ctrl && keyboard.c);
                 } else if (last_switch_right_ == Switch::MIDDLE && switch_right == Switch::DOWN) {
-                    spinning_mode_ = !spinning_mode_;
+                    new_spinning_mode = !new_spinning_mode;
                 }
+                if (spinning_mode_ == false && new_spinning_mode == true)
+                    spinning_clockwise_ = !spinning_clockwise_;
+                spinning_mode_ = new_spinning_mode;
             }
 
             auto move = Eigen::Vector2d{0, 0};
@@ -102,38 +106,46 @@ public:
     }
 
     void update_wheel_velocities(Eigen::Vector2d move) {
-        constexpr double velocity_limit = 80;
+        constexpr double speed_limit = 80;
 
         if (move.norm() > 1) {
             move.normalize();
         }
 
-        double right_oblique = velocity_limit * (-move.y() * cos_45 + move.x() * sin_45);
-        double left_oblique  = velocity_limit * (move.x() * cos_45 + move.y() * sin_45);
+        double right_oblique = speed_limit * (-move.y() * cos_45 + move.x() * sin_45);
+        double left_oblique  = speed_limit * (move.x() * cos_45 + move.y() * sin_45);
 
         double velocities[4] = {right_oblique, left_oblique, -right_oblique, -left_oblique};
 
         if (spinning_mode_) {
-            double max_velocity = 0;
+            if (!spinning_clockwise_)
+                for (auto& velocity : velocities)
+                    velocity = -velocity;
+
+            double max_speed = 0;
             for (auto& velocity : velocities) {
-                max_velocity = std::max(std::abs(velocity), max_velocity);
+                max_speed = std::max(std::abs(velocity), max_speed);
             }
 
-            auto spinning_velocity = velocity_limit - max_velocity;
-            if (spinning_velocity < spinning_min_ * velocity_limit) {
-                spinning_velocity = spinning_min_ * velocity_limit;
+            auto spinning_speed = speed_limit - max_speed;
+            if (spinning_speed < spinning_min_ * speed_limit) {
+                spinning_speed = spinning_min_ * speed_limit;
 
-                auto scale = (velocity_limit - spinning_velocity) / max_velocity;
+                auto scale = (speed_limit - spinning_speed) / max_speed;
                 for (auto& velocity : velocities) {
                     velocity *= scale;
                 }
-            } else if (spinning_velocity > spinning_max_ * velocity_limit) {
-                spinning_velocity = spinning_max_ * velocity_limit;
+            } else if (spinning_speed > spinning_max_ * speed_limit) {
+                spinning_speed = spinning_max_ * speed_limit;
             }
 
             for (auto& velocity : velocities) {
-                velocity += spinning_velocity;
+                velocity += spinning_speed;
             }
+
+            if (!spinning_clockwise_)
+                for (auto& velocity : velocities)
+                    velocity = -velocity;
         }
 
         *left_front_control_velocity_  = velocities[0];
@@ -167,7 +179,7 @@ private:
     rmcs_core::msgs::Switch last_switch_right_ = rmcs_core::msgs::Switch::UNKNOWN;
     rmcs_core::msgs::Switch last_switch_left_  = rmcs_core::msgs::Switch::UNKNOWN;
 
-    bool spinning_mode_ = false;
+    bool spinning_mode_ = false, spinning_clockwise_ = false;
 
     OutputInterface<double> left_front_control_velocity_;
     OutputInterface<double> left_back_control_velocity_;

@@ -1,4 +1,6 @@
 from launch import LaunchDescription
+from launch_ros.actions import Node
+from launch.actions import ExecuteProcess
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
@@ -32,5 +34,13 @@ def generate_launch_description():
             ]
         )
     )
+    tlarc = Node(package="decision_maker", executable="decision_maker")
+    navmesh = ExecuteProcess(
+        cmd=[
+            get_package_share_directory("decision_maker")
+            + "/UnityNavMesh/UnityNavMesh.x86_64"
+        ],
+        output="screen",
+    )
 
-    return LaunchDescription([fast_lio, local_nav, livox_ros_driver])
+    return LaunchDescription([fast_lio, local_nav, livox_ros_driver, tlarc, navmesh])

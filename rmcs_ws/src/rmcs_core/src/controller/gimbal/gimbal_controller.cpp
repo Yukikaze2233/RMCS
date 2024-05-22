@@ -36,6 +36,8 @@ public:
 
         register_input("/gimbal/auto_aim/control_direction", auto_aim_control_direction_, false);
 
+        register_input("/referee/game_stage", game_stage_);
+
         register_output("/gimbal/yaw/control_angle_error", yaw_angle_error_, nan);
         register_output("/gimbal/pitch/control_angle_error", pitch_angle_error_, nan);
     }
@@ -54,9 +56,14 @@ public:
         } else {
             PitchLink::DirectionVector dir;
 
-            if (auto_aim_control_direction_.ready() && (mouse.right || switch_right == Switch::UP)
+            auto_mode_ = *game_stage_ == GameStage::STARTED;
+            auto_mode_ |= switch_left != Switch::DOWN && switch_right == Switch::UP;
+            if (auto_aim_control_direction_.ready() && (mouse.right || auto_mode_)
                 && !auto_aim_control_direction_->isZero()) {
                 update_auto_aim_control_direction(dir);
+            } else if (auto_mode_) {
+                update_manual_control_direction(dir);
+                update_cruise_control_direction(dir);
             } else {
                 update_manual_control_direction(dir);
             }
@@ -90,6 +97,22 @@ private:
         dir =
             fast_tf::cast<PitchLink>(OdomImu::DirectionVector{*auto_aim_control_direction_}, *tf_);
         control_enabled = true;
+    }
+
+    void update_cruise_control_direction(PitchLink::DirectionVector& dir) {
+        dir->normalized();
+        auto z_axis =
+            fast_tf::cast<PitchLink>(OdomImu::DirectionVector{Eigen::Vector3d::UnitZ()}, *tf_);
+
+        auto cross = z_axis->cross(*dir);
+        if (cross.isZero()) {
+            control_enabled = false;
+            return;
+        }
+        *dir = Eigen::AngleAxisd{1.37, cross.normalized()} * (*z_axis);
+
+        auto delta_yaw = Eigen::AngleAxisd{0.00025, *z_axis};
+        *dir           = delta_yaw * (*dir);
     }
 
     void update_manual_control_direction(PitchLink::DirectionVector& dir) {
@@ -163,6 +186,9 @@ private:
     OdomImu::DirectionVector control_direction_{Eigen::Vector3d::Zero()};
     OdomImu::DirectionVector yaw_axis_filtered_{Eigen::Vector3d::UnitZ()};
     double upper_limit_, lower_limit_;
+
+    InputInterface<rmcs_core::msgs::GameStage> game_stage_;
+    bool auto_mode_ = false;
 
     OutputInterface<double> yaw_angle_error_, pitch_angle_error_;
 };

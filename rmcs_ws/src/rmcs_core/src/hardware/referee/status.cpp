@@ -1,4 +1,6 @@
 #include <rclcpp/node.hpp>
+#include <rclcpp/publisher.hpp>
+#include <std_msgs/msg/int32.hpp>
 
 #include "hardware/referee/package/receive.hpp"
 #include <rmcs_executor/component.hpp>
@@ -26,6 +28,12 @@ public:
         register_output("/referee/robot/shooter/cooling", robot_shooter_cooling_, 0);
         register_output("/referee/robot/shooter/heat_limit", robot_shooter_heat_limit_, 0);
         register_output("/referee/robot/chassis_power", robot_chassis_power_, 0.0);
+        register_output("/referee/game_stage", game_stage_, rmcs_core::msgs::GameStage::NOT_START);
+
+        sentry_hp_publisher =
+            create_publisher<std_msgs::msg::Int32>("/referee/sentry/hp", rclcpp::QoS{1});
+        outpost_hp_publisher =
+            create_publisher<std_msgs::msg::Int32>("/referee/outpost/hp", rclcpp::QoS{1});
     }
 
     void update() override {
@@ -83,9 +91,24 @@ private:
             update_game_robot_position();
     }
 
-    void update_game_status() {}
+    void update_game_status() {
+        auto& data = reinterpret_cast<package::receive::GameStatus&>(frame_.body.data);
 
-    void update_game_robot_hp() {}
+        *game_stage_ = data.game_stage;
+    }
+
+    void update_game_robot_hp() {
+        auto& data = reinterpret_cast<package::receive::GameRobotHp&>(frame_.body.data);
+        std_msgs::msg::Int32 value;
+
+        value.data = data.blue_7;
+        sentry_hp_publisher->publish(value);
+
+        value.data = data.blue_outpost;
+        outpost_hp_publisher->publish(value);
+
+        RCLCPP_INFO(get_logger(), "Sentry hp: %d, Outpost hp: %d", data.blue_7, data.blue_outpost);
+    }
 
     void update_robot_status() {
         auto& data = reinterpret_cast<package::receive::RobotStatus&>(frame_.body.data);
@@ -117,6 +140,10 @@ private:
 
     OutputInterface<int64_t> robot_shooter_cooling_, robot_shooter_heat_limit_;
     OutputInterface<double> robot_chassis_power_;
+    OutputInterface<rmcs_core::msgs::GameStage> game_stage_;
+
+    rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr sentry_hp_publisher;
+    rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr outpost_hp_publisher;
 };
 
 } // namespace rmcs_core::hardware::referee

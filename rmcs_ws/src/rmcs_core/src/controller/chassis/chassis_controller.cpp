@@ -31,6 +31,8 @@ public:
 
         register_input("/gimbal/yaw/angle", gimbal_yaw_angle_);
 
+        register_input("/referee/game_stage", game_stage_);
+
         register_output(
             "/chassis/left_front_wheel/control_velocity", left_front_control_velocity_, nan);
         register_output(
@@ -77,8 +79,9 @@ public:
 
             auto move = Eigen::Vector2d{0, 0};
 
-            if (switch_left != Switch::DOWN && switch_right == Switch::UP) {
-                // constexpr double wheel_radius = 0.07771;
+            auto_mode_ = *game_stage_ == GameStage::STARTED;
+            auto_mode_ |= switch_left != Switch::DOWN && switch_right == Switch::UP;
+            if (auto_mode_) {
                 move = Eigen::Rotation2Dd{*gimbal_yaw_angle_}
                      * Eigen::Vector2d{
                          decision_control_velocity_.x(), decision_control_velocity_.y()};
@@ -180,6 +183,9 @@ private:
     rmcs_core::msgs::Switch last_switch_left_  = rmcs_core::msgs::Switch::UNKNOWN;
 
     bool spinning_mode_ = false, spinning_clockwise_ = false;
+
+    InputInterface<rmcs_core::msgs::GameStage> game_stage_;
+    bool auto_mode_ = false;
 
     OutputInterface<double> left_front_control_velocity_;
     OutputInterface<double> left_back_control_velocity_;

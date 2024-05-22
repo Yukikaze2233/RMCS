@@ -89,7 +89,7 @@ pitch_velocity_pid_controller:
 
 shooting_controller:
   ros__parameters:
-    friction_velocity: 770.0
+    friction_velocity: 740.0
     shot_frequency: 20.0
     safe_shot_frequency: 10.0
 

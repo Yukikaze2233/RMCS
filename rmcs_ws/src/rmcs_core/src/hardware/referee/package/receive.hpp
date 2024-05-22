@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "rmcs_core/msgs.hpp"
+
 namespace rmcs_core::hardware::referee::package::receive {
 
 constexpr size_t frame_data_max_length = 1024;
@@ -25,8 +27,8 @@ struct __attribute__((packed)) Frame {
 };
 
 struct __attribute__((packed)) GameStatus {
-    uint8_t game_type  : 4;
-    uint8_t game_stage : 4;
+    uint8_t game_type                     : 4;
+    rmcs_core::msgs::GameStage game_stage : 4;
     uint16_t stage_remain_time;
     uint64_t sync_timestamp;
 };

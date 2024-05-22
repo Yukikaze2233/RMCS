@@ -41,6 +41,8 @@ public:
 
         register_input("/gimbal/bullet_feeder/velocity", bullet_feeder_velocity_);
 
+        register_input("/gimbal/auto_aim/control_fire", auto_aim_control_fire_);
+
         register_output(
             "/gimbal/left_friction/control_velocity", left_friction_control_velocity_, nan);
         register_output(
@@ -123,7 +125,7 @@ private:
     }
 
     void update_bullet_feeder_velocity() {
-        if (!friction_enabled_ || !bullet_feeder_enabled_
+        if (!friction_enabled_ || !(bullet_feeder_enabled_ || *auto_aim_control_fire_)
             || bullet_count_limited_by_shooter_heat_ == 0) {
             bullet_feeder_working_status_    = 0;
             *bullet_feeder_control_velocity_ = 0.0;
@@ -211,6 +213,8 @@ private:
     int bullet_feeder_working_status_ = 0;
     int bullet_feeder_jammed_count_   = 0;
     int bullet_feeder_cool_down_      = 0;
+
+    InputInterface<bool> auto_aim_control_fire_;
 
     OutputInterface<double> left_friction_control_velocity_, right_friction_control_velocity_;
     OutputInterface<double> bullet_feeder_control_velocity_;

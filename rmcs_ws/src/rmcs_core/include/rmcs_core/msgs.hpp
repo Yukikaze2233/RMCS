@@ -30,4 +30,13 @@ struct __attribute__((packed)) Keyboard {
     bool b     : 1;
 };
 
+enum class GameStage : uint8_t {
+    NOT_START     = 0,
+    PREPARATION   = 1,
+    REFEREE_CHECK = 2,
+    COUNTDOWN     = 3,
+    STARTED       = 4,
+    SETTLING      = 5
+};
+
 } // namespace rmcs_core::msgs

@@ -20,7 +20,7 @@ network:
     renderer: networkd
     version: 2
     ethernets:
-        enp1s0:
+        enp1s0:                             # check the name of nuc please
             optional: true                  # optional enable
             set-name: mid-360
             addresses: [192.168.1.50/24]
@@ -37,12 +37,12 @@ network:
         enx207bd27efaf5:
             optional: true
             set-name: creeper5820
-            addresses: [192.168.234.3/24]
+            addresses: [192.168.234.2/24]
             match:  
               macaddress: 20:7b:d2:7e:fa:f5
 
     wifis:
-        wlp2s0:
+        wlp2s0:                             # check the name of nuc please
             optional: true                  # optional enable
             access-points:
                 AllianceTeam5.8G:

@@ -30,9 +30,9 @@ public:
         register_output("/referee/robot/chassis_power", robot_chassis_power_, 0.0);
         register_output("/referee/game_stage", game_stage_, rmcs_core::msgs::GameStage::NOT_START);
 
-        sentry_hp_publisher =
+        sentry_hp_publisher_ =
             create_publisher<std_msgs::msg::Int32>("/referee/sentry/hp", rclcpp::QoS{1});
-        outpost_hp_publisher =
+        outpost_hp_publisher_ =
             create_publisher<std_msgs::msg::Int32>("/referee/outpost/hp", rclcpp::QoS{1});
     }
 
@@ -101,11 +101,11 @@ private:
         auto& data = reinterpret_cast<package::receive::GameRobotHp&>(frame_.body.data);
         std_msgs::msg::Int32 value;
 
-        value.data = data.blue_7;
-        sentry_hp_publisher->publish(value);
+        value.data = data.red_7;
+        sentry_hp_publisher_->publish(value);
 
-        value.data = data.blue_outpost;
-        outpost_hp_publisher->publish(value);
+        value.data = data.red_outpost;
+        outpost_hp_publisher_->publish(value);
 
         RCLCPP_INFO(get_logger(), "Sentry hp: %d, Outpost hp: %d", data.blue_7, data.blue_outpost);
     }
@@ -142,8 +142,8 @@ private:
     OutputInterface<double> robot_chassis_power_;
     OutputInterface<rmcs_core::msgs::GameStage> game_stage_;
 
-    rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr sentry_hp_publisher;
-    rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr outpost_hp_publisher;
+    rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr sentry_hp_publisher_;
+    rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr outpost_hp_publisher_;
 };
 
 } // namespace rmcs_core::hardware::referee

@@ -7,6 +7,7 @@
 #include <rclcpp/node.hpp>
 #include <rclcpp/subscription.hpp>
 #include <rmcs_executor/component.hpp>
+#include <std_msgs/msg/int32.hpp>
 
 #include "rmcs_core/msgs.hpp"
 
@@ -16,6 +17,8 @@ class ChassisController
     : public rmcs_executor::Component
     , public rclcpp::Node {
 public:
+    enum class DecisionMode { INVINCIBLE = 0, BAD_HEALTH, HIDDEN, CRUISE };
+
     ChassisController()
         : Node(
               get_component_name(),
@@ -47,6 +50,13 @@ public:
             [this](const geometry_msgs::msg::Pose2D::UniquePtr& msg) -> void {
                 decision_control_velocity_.x() = msg->x;
                 decision_control_velocity_.y() = msg->y;
+            });
+
+        decision_mode_subscription_ = this->create_subscription<std_msgs::msg::Int32>(
+            "/sentry/control/status", 10, [this](std::unique_ptr<std_msgs::msg::Int32> msg) {
+                if (auto_mode_ && msg->data != static_cast<int>(DecisionMode::INVINCIBLE)) {
+                    spinning_mode_ |= true;
+                }
             });
     }
 
@@ -186,6 +196,8 @@ private:
 
     InputInterface<rmcs_core::msgs::GameStage> game_stage_;
     bool auto_mode_ = false;
+
+    std::shared_ptr<rclcpp::Subscription<std_msgs::msg::Int32>> decision_mode_subscription_;
 
     OutputInterface<double> left_front_control_velocity_;
     OutputInterface<double> left_back_control_velocity_;

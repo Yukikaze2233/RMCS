@@ -7,6 +7,7 @@
 #include <rclcpp/node.hpp>
 #include <rmcs_description/tf_description.hpp>
 #include <rmcs_executor/component.hpp>
+#include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/int32.hpp>
 
 #include "rmcs_core/msgs.hpp"
@@ -46,19 +47,18 @@ public:
         register_output("/gimbal/yaw/control_angle_error", yaw_angle_error_, nan);
         register_output("/gimbal/pitch/control_angle_error", pitch_angle_error_, nan);
 
-        decision_mode_subscription_ = this->create_subscription<std_msgs::msg::Int32>(
+        robot_status_subscription_ = this->create_subscription<std_msgs::msg::Int32>(
             "/sentry/control/status", 10, [this](std::unique_ptr<std_msgs::msg::Int32> msg) {
-                if (msg->data != static_cast<int>(DecisionMode::INVINCIBLE)) {
-                    // low angle
-                    dynamic_auto_aim_angle_ = true;
-                    auto_aim_angle_         = 1.77;
-                    auto_aim_delta_yaw_     = 0.00050;
-                } else {
-                    // high angle
-                    dynamic_auto_aim_angle_ = false;
-                    auto_aim_angle_         = high_auto_aim_angle;
-                    auto_aim_delta_yaw_     = 0.00025;
-                }
+                // if (msg->data != static_cast<int>(DecisionMode::INVINCIBLE)) {
+                (void)this;
+                (void)msg;
+            });
+        scan_mode_subscription_ = this->create_subscription<std_msgs::msg::Bool>(
+            "/sentry/control/scan_mode", 10, [this](std::unique_ptr<std_msgs::msg::Bool> msg) {
+                if (msg->data == true)
+                    auto_aim_delta_yaw_ = 0.0015;
+                else
+                    auto_aim_delta_yaw_ = 0.00025;
             });
     }
 
@@ -213,10 +213,11 @@ private:
     OutputInterface<double> yaw_angle_error_, pitch_angle_error_;
 
     // about auto mode
-    std::shared_ptr<rclcpp::Subscription<std_msgs::msg::Int32>> decision_mode_subscription_;
+    std::shared_ptr<rclcpp::Subscription<std_msgs::msg::Int32>> robot_status_subscription_;
+    std::shared_ptr<rclcpp::Subscription<std_msgs::msg::Bool>> scan_mode_subscription_;
     bool dynamic_auto_aim_angle_ = false;
     double auto_aim_angle_       = 1.77;
-    double auto_aim_delta_yaw_   = 0.00050;
+    double auto_aim_delta_yaw_   = 0.00075;
 };
 
 } // namespace rmcs_core::controller::gimbal

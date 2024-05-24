@@ -34,6 +34,8 @@ public:
             create_publisher<std_msgs::msg::Int32>("/referee/sentry/hp", rclcpp::QoS{1});
         outpost_hp_publisher_ =
             create_publisher<std_msgs::msg::Int32>("/referee/outpost/hp", rclcpp::QoS{1});
+        bullet_allowance_publisher_ =
+            create_publisher<std_msgs::msg::Int32>("/referee/bullet", rclcpp::QoS{1});
     }
 
     void update() override {
@@ -101,10 +103,10 @@ private:
         auto& data = reinterpret_cast<package::receive::GameRobotHp&>(frame_.body.data);
         std_msgs::msg::Int32 value;
 
-        value.data = data.red_7;
+        value.data = data.blue_7;
         sentry_hp_publisher_->publish(value);
 
-        value.data = data.red_outpost;
+        value.data = data.blue_outpost;
         outpost_hp_publisher_->publish(value);
 
         RCLCPP_INFO(get_logger(), "Sentry hp: %d, Outpost hp: %d", data.blue_7, data.blue_outpost);
@@ -128,7 +130,13 @@ private:
 
     void update_shoot_data() {}
 
-    void update_bullet_allowance() {}
+    void update_bullet_allowance() {
+        auto& data = reinterpret_cast<package::receive::BulletAllowance&>(frame_.body.data);
+        auto msg   = std_msgs::msg::Int32{};
+        msg.data   = data.bullet_allowance_17mm;
+
+        bullet_allowance_publisher_->publish(msg);
+    }
 
     void update_game_robot_position() {}
 
@@ -144,6 +152,7 @@ private:
 
     rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr sentry_hp_publisher_;
     rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr outpost_hp_publisher_;
+    rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr bullet_allowance_publisher_;
 };
 
 } // namespace rmcs_core::hardware::referee

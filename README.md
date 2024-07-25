@@ -113,7 +113,7 @@ sudo iptables -t nat -A POSTROUTING -o wlp4s0 -j MASQUERADE
 lsusb | grep DECXIN
 ```
 
-As shown below, Pid is 2cd1 while Vid 1bcf is .
+As shown below, Pid is 2cd1 while Vid is 1bcf.
 
 > Bus 003 Device 011: ID 1bcf:2cd1 Sunplus Innovation Technology Inc. DECXIN  CAMERA
 
@@ -127,7 +127,7 @@ As shown below, port is "3-2".
 
 > KERNEL=="video2" \
   KERNELS=="3-2:1.0" \
-  KERNELS=="3-2" \ 
+  KERNELS=="3-2" \
   KERNELS=="usb3" \
   KERNELS=="0000:36:00.4" \
   KERNELS=="0000:00:08.1" \

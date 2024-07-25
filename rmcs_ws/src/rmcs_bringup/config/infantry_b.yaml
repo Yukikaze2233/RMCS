@@ -166,12 +166,12 @@ chassis_power_controller:
 
 rmcs_auto_aim:
   ros__parameters:
-    exposure_time: 5
+    exposure_time: 7
     armor_predict_duration: 500
     buff_predict_duration: 200
-    gimbal_predict_duration: 500
-    yaw_error: 0.005
-    pitch_error: -0.5
+    gimbal_predict_duration: 100
+    yaw_error: 0.0375
+    pitch_error: -0.05
     armor_model_path: "/models/armoridentify_with_base.onnx"
     buff_model_path: "/models/buff_nocolor_v6.onnx"
     debug: true
@@ -184,7 +184,8 @@ rmcs_auto_aim:
     k3: 0.792381808294582
     omni_exposure: 1000.0
     test: 0.1107
-    fps: 165
-    debug_color: 0 # 0 For blue while 1 for red
+    record_fps: 120
+    debug_color: 0 # 0 For blue while 1 for red. mine
     debug_robot_id: 4
     debug_buff_mode: false
+    record: true

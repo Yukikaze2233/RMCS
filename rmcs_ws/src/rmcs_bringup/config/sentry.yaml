@@ -192,7 +192,8 @@ rmcs_auto_aim:
     omni_k2: -0.1184
     omni_k3: 0.0501
     test: 0.1107
-    fps: 165
+    record_fps: 165
     debug_color: 0 # 0 For blue while 1 for red
     debug_robot_id: 4
     debug_buff_mode: false
+    record: false

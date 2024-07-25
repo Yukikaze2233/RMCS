@@ -98,9 +98,10 @@ Assuming that Ubuntu 1 has wlp4s0 connected to Internet and eno1 connected to NU
 
 ``` bash
 
-sudo iptables -A FORWARD -i eno1 -o eno2 -j ACCEPT
-sudo iptables -A FORWARD -i eno2 -o eno1 -m state --state ESTABLISHED,RELATED -j ACCEPT
-sudo iptables -t nat -A POSTROUTING -o eno2 -j MASQUERADE
+sudo iptables -A FORWARD -i eno1 -o wlp4s0 -j ACCEPT
+sudo iptables -A FORWARD -i wlp4s0 -o eno1 -m state --state ESTABLISHED,RELATED -j ACCEPT
+sudo iptables -t nat -A POSTROUTING -o wlp4s0 -j MASQUERADE
 
 
 ```
+

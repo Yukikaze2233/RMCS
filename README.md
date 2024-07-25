@@ -105,3 +105,50 @@ sudo iptables -t nat -A POSTROUTING -o wlp4s0 -j MASQUERADE
 
 ```
 
+## Remap Port of Omni Direction Perception Camera
+
+1. Check out Pid and Vid.
+
+``` bash
+lsusb | grep DECXIN
+```
+
+As shown below, Pid is 2cd1 while Vid 1bcf is .
+
+> Bus 003 Device 011: ID 1bcf:2cd1 Sunplus Innovation Technology Inc. DECXIN  CAMERA
+
+2. Check out port.
+
+``` bash
+udevadm info --attribute-walk --name=/dev/video2 | grep "KERNEL"
+```
+
+As shown below, port is "3-2".
+
+> KERNEL=="video2" \
+  KERNELS=="3-2:1.0" \
+  KERNELS=="3-2" \ 
+  KERNELS=="usb3" \
+  KERNELS=="0000:36:00.4" \
+  KERNELS=="0000:00:08.1" \
+  KERNELS=="pci0000:00" 
+
+3. Edit udev rules
+
+``` bash
+sudo gedit /etc/udev/rules.d/omni.rules 
+```
+
+Type rules below
+```
+KERNEL=="video*",KERNELS=="3-2", ATTRS{idProduct}=="2cd1", ATTRS{idVendor}=="1bcf", MODE:="0777", SYMLINK+="leftfront"
+KERNEL=="video*",KERNELS=="3-1", ATTRS{idProduct}=="2cd1", ATTRS{idVendor}=="1bcf", MODE:="0777", SYMLINK+="rightfront"
+KERNEL=="video*",KERNELS=="3-3", ATTRS{idProduct}=="2cd1", ATTRS{idVendor}=="1bcf", MODE:="0777", SYMLINK+="left"
+KERNEL=="video*",KERNELS=="3-4", ATTRS{idProduct}=="2cd1", ATTRS{idVendor}=="1bcf", MODE:="0777", SYMLINK+="right"
+```
+
+4. Refresh
+
+``` bash
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```

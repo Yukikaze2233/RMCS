@@ -8,8 +8,8 @@ RoboMaster Control System based on ROS2.
 TODO .
 
 1. `ubuntu-server`
-1. `ssh-server`
-1. `docker`
+2. `ssh-server`
+3. `docker`
 
 ### Connect with nuc
 #### Net plan
@@ -59,7 +59,7 @@ docker run -it --rm --privileged --network=host qzhhhi/dhcp-server eno1
 ```
 
 #### Sync and Start
-
+ 
 ```sh
 # Set remote ip
 set-remote 192.168.234.2
@@ -151,4 +151,45 @@ KERNEL=="video*",KERNELS=="3-4", ATTRS{idProduct}=="2cd1", ATTRS{idVendor}=="1bc
 
 ``` bash
 sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+### Runtime environment build
+
+1. Pull or load images
+
+- Online
+
+``` bash
+sudo docker pull qzhhhi/rmcs-runtime 
+```
+
+- Offline 
+``` bash
+sudo docker load -i rmcs-runtime.tar
+```
+
+2. Start with NUC
+
+```
+sudo vi /etc/init.d/rmcs-runtime.sh
+```
+
+Type content below
+
+``` bash
+### BEGIN INIT INFO
+# Providers:         rmcs-runtime.sh
+# Description:       run rmcs runtime environment
+### END INIT INFO
+ 
+ 
+systemctl start docker
+docker run --restart=always --privileged --network=host -v /dev:/dev qzhhhi/rmcs-runtime
+```
+
+> PS: `### BEGIN INIT INFO` and `### END INIT INFO` are required.
+
+```bash
+sudo chmod 775 rmcs-runtime.sh
+sudo update-rc.d rmcs-runtime.sh defaults 90 
 ```

@@ -72,9 +72,9 @@ ssh-remote
 sync-remote
 ```
 
-# How to make NUC connect to Internet
+## How to make NUC connect to Internet
 
-## Gateway
+### Gateway
 
 To make Ubuntu1 regarded as gateway, edit the `/etc/netplan/***.yaml`. A possible version is shown below.
 
@@ -92,7 +92,7 @@ network:
     version: 2
 ```
 
-## Soft Route
+### Soft Route
 
 Assuming that Ubuntu 1 has wlp4s0 connected to Internet and eno1 connected to NUC, Run commands below in Ubuntu 1 to create a soft route.
 
@@ -153,7 +153,7 @@ KERNEL=="video*",KERNELS=="3-4", ATTRS{idProduct}=="2cd1", ATTRS{idVendor}=="1bc
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
-### Runtime environment build
+## Runtime environment build
 
 1. Pull or load images
 
@@ -192,4 +192,12 @@ docker run --restart=always --privileged --network=host -v /dev:/dev qzhhhi/rmcs
 ```bash
 sudo chmod 775 rmcs-runtime.sh
 sudo update-rc.d rmcs-runtime.sh defaults 90 
+```
+
+## Gimbal calibration
+
+``` bash
+source /opt/ros/humble/setup.bash 
+ros2 topic pub -1 /gimbal/calibrate std_msgs/msg/Int32 "{'data':1}"
+cat /rmcs.launch.out
 ```

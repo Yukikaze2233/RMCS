@@ -38,8 +38,8 @@ rmcs_executor:
 cboard_status:
   ros__parameters:
     path: /dev/ttyACM0
-    yaw_motor_zero_point: 4089
-    pitch_motor_zero_point: 722
+    yaw_motor_zero_point: 4062
+    pitch_motor_zero_point: 5410
     imu_gx_bias: 0.0
     imu_gy_bias: 0.0
     imu_gz_bias: 0.0
@@ -166,12 +166,12 @@ chassis_power_controller:
 
 rmcs_auto_aim:
   ros__parameters:
-    exposure_time: 7
+    exposure_time: 5
     armor_predict_duration: 500
     buff_predict_duration: 200
-    gimbal_predict_duration: 100
-    yaw_error: 0.0375
-    pitch_error: -0.05
+    gimbal_predict_duration: 500
+    yaw_error: 0.0
+    pitch_error: -0.0
     armor_model_path: "/models/armoridentify_with_base.onnx"
     buff_model_path: "/models/buff_nocolor_v6.onnx"
     debug: true

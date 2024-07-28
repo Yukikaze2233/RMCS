@@ -187,7 +187,7 @@ private:
         tf_->set_transform<rmcs_description::ImuLink, rmcs_description::OdomImu>(
             gimbal_imu_pose.conjugate());
 
-        *imu_gyro_ = gyro;
+        *imu_gyro_ = rmcs_description::YawLink::DirectionVector{gx, gy, gz};
     }
 
     void gimbal_calibrate_subscription_callback(std_msgs::msg::Int32::UniquePtr) {

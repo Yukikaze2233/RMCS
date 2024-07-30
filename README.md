@@ -201,3 +201,14 @@ source /opt/ros/humble/setup.bash
 ros2 topic pub -1 /gimbal/calibrate std_msgs/msg/Int32 "{'data':1}"
 cat /rmcs.launch.out
 ```
+
+## Gyro calibration
+
+``` bash
+source /opt/ros/humble/setup.bash 
+ros2 topic pub -1 /imu/calibrator std_msgs/msg/Int8 "{'data':1}" # Start calibrating
+ros2 topic pub -1 /imu/calibrator std_msgs/msg/Int8 "{'data':0}" # Finish calibrating
+cat /rmcs.launch.out
+```
+
+> PS: All control should be disabled when calibrating.

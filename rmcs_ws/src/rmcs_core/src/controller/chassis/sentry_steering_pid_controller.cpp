@@ -179,8 +179,9 @@ public:
     }
     calculate_wheel_velocity_for_forwarding(
         angle, velocity, move,
-        (spinning_ || auto_control_spinning_) * spinning_omega *
-            (last_spinning_ ? 1 : -1));
+        (spinning_ ||
+         (*switch_right_ == rmcs_msgs::Switch::UP && auto_control_spinning_)) *
+            spinning_omega * (last_spinning_ ? 1 : -1));
 
     *left_front_control_angle_ =
         angle[0] - *left_front_angle_; //+ *mpc_left_front_control_angle_;

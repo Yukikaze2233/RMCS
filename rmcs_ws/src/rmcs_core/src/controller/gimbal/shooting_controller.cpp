@@ -47,6 +47,7 @@ public:
     register_input("/gimbal/bullet_feeder/velocity", bullet_feeder_velocity_);
 
     register_input("/gimbal/shooting/fire_controller_", fire_controller_);
+
     register_output("/gimbal/left_friction/control_velocity",
                     left_friction_control_velocity_, nan);
     register_output("/gimbal/right_friction/control_velocity",

@@ -134,6 +134,8 @@ private:
         current_dir.vector.dot(target_dir.vector) /
         (current_dir.vector.norm() * target_dir.vector.norm()); // 角度cos值
 
+    cosValNew = acos(cosValNew);
+
     *fire_controller_ = cosValNew < fire_limit_rad;
   }
 

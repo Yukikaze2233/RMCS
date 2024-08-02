@@ -34,7 +34,7 @@ rmcs_executor:
 
       - rmcs_core::hardware::cboard::GyroCalibrator -> gyro_calibrator
 
-      # - rmcs_auto_aim::Controller -> rmcs_auto_aim
+      - rmcs_auto_aim::Controller -> rmcs_auto_aim
 
 cboard_status:
   ros__parameters:
@@ -245,7 +245,7 @@ rmcs_auto_aim:
     test: 0.1107
     record_fps: 165
     debug: true
-    debug_color: 0 # 0 For blue while 1 for red
+    debug_color: 1 # 0 For blue while 1 for red
     debug_robot_id: 7
     debug_buff_mode: false
     record: false

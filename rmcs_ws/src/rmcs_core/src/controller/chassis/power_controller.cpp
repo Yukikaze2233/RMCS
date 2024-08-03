@@ -22,9 +22,10 @@ public:
         for (const auto& motor_name : motor_names)
             motors_.push_back(std::make_unique<Motor>(this, motor_name));
 
-        register_input("/referee/chassis_power", chassis_power_referee_);
-        register_input("/referee/buffer_energy", chassis_buffer_energy_referee_);
-        register_input("/referee/chassis_power_limit", chassis_power_limit_referee_);
+        register_input("/referee/chassis/power", chassis_power_referee_);
+        register_input("/referee/chassis/buffer_energy",
+                       chassis_buffer_energy_referee_);
+        register_input("/referee/chassis/power_limit", chassis_power_limit_referee_);
     }
 
     void update() override {
@@ -40,7 +41,7 @@ public:
         double power     = a + b + c;
         double power_max = *chassis_power_limit_referee_;
 
-        constexpr double buffer_energy_control_line = 50;
+        constexpr double buffer_energy_control_line = 80;
         double power_reduction_factor =
             std::min(1.0, *chassis_buffer_energy_referee_ / buffer_energy_control_line);
         power_max *= power_reduction_factor;

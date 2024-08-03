@@ -43,6 +43,7 @@ public:
             [this](const geometry_msgs::msg::Pose2D::UniquePtr &msg) {
               auto_control_velocity.x() = msg->x;
               auto_control_velocity.y() = msg->y;
+              auto_control_velocity *= 2;
             });
     auto_control_spinning_sub_ = create_subscription<std_msgs::msg::Bool>(
         "/sentry/control/spinning", 10, [this](const std_msgs::msg::Bool &msg) {
@@ -116,7 +117,7 @@ public:
       }
 
       update_wheel_velocities(
-          Eigen::Rotation2Dd{*gimbal_yaw_angle_ + *gimbal_yaw_angle_error_} *
+          Eigen::Rotation2Dd{*gimbal_yaw_angle_ + *gimbal_yaw_angle_error_  } *
           (*joystick_right_ +
            ((switch_right == Switch::UP || *game_stage_ == GameStage::STARTED)
                 ? 1
@@ -180,7 +181,7 @@ public:
     calculate_wheel_velocity_for_forwarding(
         angle, velocity, move,
         (spinning_ ||
-         (*switch_right_ == rmcs_msgs::Switch::UP && auto_control_spinning_)) *
+         ((*switch_right_ == rmcs_msgs::Switch::UP || *game_stage_ ==rmcs_msgs::GameStage::STARTED ) && auto_control_spinning_)) *
             spinning_omega * (last_spinning_ ? 1 : -1));
 
     *left_front_control_angle_ =
@@ -220,11 +221,14 @@ public:
   InputInterface<rmcs_msgs::GameStage> game_stage_;
 
   static inline void calculate_wheel_velocity_for_forwarding(
-      double (&angle)[4], double (&velocity)[4], const Eigen::Vector2d &move,
+      double (&angle)[4], double (&velocity)[4],  Eigen::Vector2d &move,
       double spin_speed) {
+
+      move = Eigen::Rotation2Dd{spin_speed * 0.001} * move;
+
     if (move.norm() < 1e-2 && abs(spin_speed) < 1e-2)
       spin_speed = 1e-3;
-    Eigen::Vector2d spin(0.15, 0.15);
+    Eigen::Vector2d spin(0.22, 0.22);
     spin = spin * spin_speed;
     spin(0) = -spin(0);
     Eigen::Vector2d v = move + spin;

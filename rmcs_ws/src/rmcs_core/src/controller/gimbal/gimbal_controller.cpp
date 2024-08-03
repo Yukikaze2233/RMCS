@@ -6,7 +6,10 @@
 #include <ctime>
 #include <eigen3/Eigen/Dense>
 
+#include <eigen3/Eigen/src/Core/Matrix.h>
 #include <fast_tf/rcl.hpp>
+#include <game_stage.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 
 #include <geometry_msgs/msg/pose2_d.hpp>
@@ -33,6 +36,10 @@ public:
         [this](const geometry_msgs::msg::Pose2D::UniquePtr &msg) {
           auto_control_angle_.x() = msg->x;
           auto_control_angle_.y() = msg->y;
+          if (auto_control_angle_.x() <= auto_control_angle_.y())
+            auto_control_angle_.y() += M_PI * 2;
+          else
+            auto_control_angle_.y() = M_PI * 2;
         });
     last_yaw_angle_ = 0;
     upper_limit_ =
@@ -40,6 +47,8 @@ public:
     lower_limit_ =
         get_parameter("lower_limit").as_double() + (std::numbers::pi / 2);
     time_tick_ = 0;
+
+    register_input("/referee/game/stage", game_stage_);
     register_input("/remote/joystick/left", joystick_left_);
     register_input("/remote/switch/right", switch_right_);
     register_input("/remote/switch/left", switch_left_);
@@ -55,21 +64,25 @@ public:
     register_output("/gimbal/yaw/control_angle_error", yaw_angle_error_, nan);
     register_output("/gimbal/pitch/control_angle_error", pitch_angle_error_,
                     nan);
-    register_output("/gimbal/shooting/fire_controller_", fire_controller_,
+    register_output("/gimbal/shooting/fire_controller", fire_controller_,
                     false);
 
     RCLCPP_INFO(get_logger(), "gimbal_controller init");
   }
 
   void update() override {
-    // RCLCPP_INFO(get_logger(), "%f", *gimbal_pitch_angle_);
+    // RCLCPP_INFO(get_logger(), "%d", auto_aim_control_direction_->isZero());
     time_tick_ += 1;
     update_yaw_axis();
 
     auto switch_right = *switch_right_;
     auto switch_left = *switch_left_;
     auto mouse = *mouse_;
-
+    auto_aim_timer++;
+    if(auto_aim_timer <= 30)
+      *fire_controller_ = true;
+    else
+      *fire_controller_ = false;
     using namespace rmcs_msgs;
     if ((switch_left == Switch::UNKNOWN || switch_right == Switch::UNKNOWN) ||
         (switch_left == Switch::DOWN && switch_right == Switch::DOWN)) {
@@ -78,11 +91,12 @@ public:
       PitchLink::DirectionVector dir;
 
       if (auto_aim_control_direction_.ready() &&
-          (mouse.right || switch_right == Switch::UP) &&
+          (mouse.right || switch_right == Switch::UP || *game_stage_ == GameStage::STARTED) &&
           !auto_aim_control_direction_->isZero()) {
         update_auto_aim_control_direction(dir);
         update_auto_aim_fire_controller();
-      } else if (switch_right == Switch::UP) {
+        auto_aim_timer = 0;
+      } else if (auto_aim_timer >= 1000 && (switch_right == Switch::UP ||  *game_stage_ == GameStage::STARTED)) {
         update_auto_control_direction(dir);
       } else {
         update_manual_control_direction(dir);
@@ -120,20 +134,13 @@ private:
   }
 
   void update_auto_aim_fire_controller() {
-    auto target_dir = fast_tf::cast<PitchLink>(
-        OdomImu::DirectionVector{*auto_aim_control_direction_}, *tf_);
-    auto odom_dir = fast_tf::cast<OdomImu>(
-        PitchLink::DirectionVector{Eigen::Vector3d::UnitX()}, *tf_);
-    if (odom_dir->x() == 0 || odom_dir->y() == 0)
-      return;
-    odom_dir->z() = 0;
+    auto target_dir = OdomImu::DirectionVector{*auto_aim_control_direction_};
 
-    auto current_dir = fast_tf::cast<PitchLink>(odom_dir, *tf_);
+    auto current_dir = fast_tf::cast<OdomImu>(PitchLink::DirectionVector(Eigen::Vector3d::UnitX()), *tf_);
 
     double cosValNew =
-        current_dir.vector.dot(target_dir.vector) /
-        (current_dir.vector.norm() * target_dir.vector.norm()); // 角度cos值
-
+        current_dir.vector.dot(*target_dir) /
+        (current_dir.vector.norm() * target_dir->norm()); // 角度cos值
     cosValNew = acos(cosValNew);
 
     *fire_controller_ = cosValNew < fire_limit_rad;
@@ -178,17 +185,17 @@ private:
     auto yaw_angle =
         std::clamp(delta_angle * yaw_time + auto_control_angle_.x() -
                        last_yaw_angle_,
-                   -auto_rotate_speed_ * 1e-3, auto_rotate_speed_ * 1e-3) +
+                   -auto_rotate_speed_ * 1e-2, auto_rotate_speed_ * 1e-2) +
         last_yaw_angle_;
-    auto pitch_angle = 0.4 * pitch_time - 0.1;
+    auto pitch_angle = 0.5 * pitch_time;
     auto delta_yaw = Eigen::AngleAxisd{yaw_angle, Eigen::Vector3d::UnitZ()};
-    auto delta_pitch = Eigen::AngleAxisd{pitch_angle, Eigen::Vector3d::UnitY()};
-    dir = fast_tf::cast<PitchLink>(
-        OdomImu::DirectionVector{-Eigen::Vector3d::UnitY()}, *tf_);
-    RCLCPP_INFO(get_logger(), "%f,%f", time, delta_angle);
+    auto delta_pitch = Eigen::AngleAxisd{pitch_angle, Eigen::Vector3d::UnitX()};
+    auto odom_dir = OdomImu::DirectionVector{-Eigen::Vector3d::UnitY()};
+    *odom_dir = (delta_yaw * (*odom_dir));
+    dir = fast_tf::cast<PitchLink>(odom_dir, *tf_);
+    // RCLCPP_INFO(get_logger(), "%f,%f", time, delta_angle);
     last_yaw_angle_ = yaw_angle;
     dir->normalize();
-    *dir = delta_pitch * (delta_yaw * (*dir));
     control_enabled = true;
   }
 
@@ -226,6 +233,8 @@ private:
                                       -z * cp * sp + x * sp * sp + cp * b);
   }
 
+  long auto_aim_timer = 0;
+
   static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
   static constexpr double fire_limit_rad = M_PI / 36.;
   InputInterface<Eigen::Vector2d> joystick_left_;
@@ -238,6 +247,7 @@ private:
   InputInterface<Tf> tf_;
 
   InputInterface<Eigen::Vector3d> auto_aim_control_direction_;
+  InputInterface<rmcs_msgs::GameStage> game_stage_;
 
   rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr
       auto_control_angle_sub_;

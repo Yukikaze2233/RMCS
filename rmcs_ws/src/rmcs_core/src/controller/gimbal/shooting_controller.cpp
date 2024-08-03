@@ -46,7 +46,7 @@ public:
 
     register_input("/gimbal/bullet_feeder/velocity", bullet_feeder_velocity_);
 
-    register_input("/gimbal/shooting/fire_controller_", fire_controller_);
+    register_input("/gimbal/shooting/fire_controller", fire_controller_);
 
     register_output("/gimbal/left_friction/control_velocity",
                     left_friction_control_velocity_, nan);
@@ -56,7 +56,6 @@ public:
                     bullet_feeder_control_velocity_, nan);
 
     register_input("/referee/game/stage", game_stage_);
-    RCLCPP_INFO(get_logger(), "shooting_controller init");
   }
 
   void update() override {
@@ -73,16 +72,14 @@ public:
       reset_all_controls();
     } else {
       if (switch_right != Switch::DOWN) {
-        if (*game_stage_ == GameStage::STARTED)
-          friction_enabled_ = true;
-        else if ((!last_keyboard_.v && keyboard.v) ||
+         if ((!last_keyboard_.v && keyboard.v) ||
                  (last_switch_left_ == Switch::MIDDLE &&
                   switch_left == Switch::UP)) {
           friction_enabled_ = !friction_enabled_;
         }
         bullet_feeder_enabled_ =
-            (switch_right == Switch::UP && *fire_controller_) || mouse.left ||
-            switch_left == Switch::DOWN;
+            ((*game_stage_ == GameStage::STARTED ||switch_right == Switch::UP) && *fire_controller_) ||
+            mouse.left || switch_left == Switch::DOWN;
       }
       update_friction_velocities();
       update_bullet_feeder_velocity();
@@ -91,6 +88,8 @@ public:
     last_switch_right_ = switch_right;
     last_switch_left_ = switch_left;
     last_keyboard_ = keyboard;
+
+    // RCLCPP_INFO(get_logger(), "%lf", *bullet_feeder_control_velocity_);
   }
 
 private:
@@ -126,11 +125,11 @@ private:
 
     // test
 
-    bullet_count_limited_by_shooter_heat_ =
-        (20'000'000 - shooter_heat_ - 10'000) / 10'000;
-
     // bullet_count_limited_by_shooter_heat_ =
-    //     (*shooter_heat_limit_ - shooter_heat_ - 10'000) / 10'000;
+    //     (20'000'000 - shooter_heat_ - 10'000) / 10'000;
+
+    bullet_count_limited_by_shooter_heat_ =
+        (*shooter_heat_limit_ - shooter_heat_ - 10'000) / 10'000;
     if (bullet_count_limited_by_shooter_heat_ < 0)
       bullet_count_limited_by_shooter_heat_ = 0;
   }
@@ -149,7 +148,6 @@ private:
       *bullet_feeder_control_velocity_ = 0.0;
       return;
     }
-    // RCLCPP_INFO(get_logger(), "%ld", bullet_count_limited_by_shooter_heat_);
     update_jam_detection();
 
     if (bullet_feeder_cool_down_ > 0) {
@@ -160,6 +158,7 @@ private:
     double new_control_velocity = bullet_count_limited_by_shooter_heat_ > 1
                                       ? bullet_feeder_working_velocity
                                       : bullet_feeder_safe_shot_velocity;
+
     if (new_control_velocity > *bullet_feeder_control_velocity_)
       bullet_feeder_working_status_ =
           std::min(0, bullet_feeder_working_status_);

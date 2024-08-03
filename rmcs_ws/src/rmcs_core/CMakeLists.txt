@@ -22,6 +22,10 @@ ament_auto_add_library (
   ${PROJECT_NAME} SHARED
   ${PROJECT_SOURCE}
 )
+target_link_libraries( 
+  ${PROJECT_NAME}
+  usb-1.0
+)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)

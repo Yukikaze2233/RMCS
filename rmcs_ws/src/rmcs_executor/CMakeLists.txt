@@ -23,6 +23,10 @@ ament_auto_add_executable (
   src/main.cpp
 )
 target_link_libraries(${PROJECT_NAME}_exe ${PROJECT_NAME}_lib)
+target_link_libraries( 
+  ${PROJECT_NAME}_exe
+  usb-1.0
+)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)

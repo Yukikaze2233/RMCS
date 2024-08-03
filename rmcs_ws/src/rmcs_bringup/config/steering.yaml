@@ -41,11 +41,11 @@ sentry_above:
     pitch_motor_zero_point: 384
 sentry_below:
   ros__parameters:
-    yaw_motor_zero_point: 0
-    left_front_motor_zero_point: 0
-    left_back_motor_zero_point: 0
-    right_back_motor_zero_point: 0
-    right_front_motor_zero_point: 0
+    yaw_motor_zero_point: 2741
+    left_front_motor_zero_point: 4083
+    left_back_motor_zero_point: 2737
+    right_back_motor_zero_point: 3146
+    right_front_motor_zero_point: 2002
 
 
 referee_status:

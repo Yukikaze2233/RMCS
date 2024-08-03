@@ -79,7 +79,7 @@ public:
     auto switch_left = *switch_left_;
     auto mouse = *mouse_;
     auto_aim_timer++;
-    if(auto_aim_timer <= 30)
+    if (auto_aim_timer <= 30)
       *fire_controller_ = true;
     else
       *fire_controller_ = false;
@@ -91,12 +91,15 @@ public:
       PitchLink::DirectionVector dir;
 
       if (auto_aim_control_direction_.ready() &&
-          (mouse.right || switch_right == Switch::UP || *game_stage_ == GameStage::STARTED) &&
+          (mouse.right || switch_right == Switch::UP ||
+           *game_stage_ == GameStage::STARTED) &&
           !auto_aim_control_direction_->isZero()) {
         update_auto_aim_control_direction(dir);
         update_auto_aim_fire_controller();
         auto_aim_timer = 0;
-      } else if (auto_aim_timer >= 1000 && (switch_right == Switch::UP ||  *game_stage_ == GameStage::STARTED)) {
+      } else if (auto_aim_timer >= 1000 &&
+                 (switch_right == Switch::UP ||
+                  *game_stage_ == GameStage::STARTED)) {
         update_auto_control_direction(dir);
       } else {
         update_manual_control_direction(dir);
@@ -136,7 +139,8 @@ private:
   void update_auto_aim_fire_controller() {
     auto target_dir = OdomImu::DirectionVector{*auto_aim_control_direction_};
 
-    auto current_dir = fast_tf::cast<OdomImu>(PitchLink::DirectionVector(Eigen::Vector3d::UnitX()), *tf_);
+    auto current_dir = fast_tf::cast<OdomImu>(
+        PitchLink::DirectionVector(Eigen::Vector3d::UnitX()), *tf_);
 
     double cosValNew =
         current_dir.vector.dot(*target_dir) /

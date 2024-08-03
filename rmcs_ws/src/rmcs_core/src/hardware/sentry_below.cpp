@@ -1,9 +1,13 @@
 #include <memory>
 
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
+#include <rclcpp/subscription.hpp>
 #include <rmcs_description/tf_description.hpp>
 #include <rmcs_executor/component.hpp>
 #include <rmcs_msgs/serial_interface.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/detail/bool__struct.hpp>
 #include <std_msgs/msg/int32.hpp>
 
 #include "hardware/device/dji_motor.hpp"
@@ -25,6 +29,14 @@ public:
         transmit_buffer_(*this, 16) {
     using namespace device;
 
+    tmp_ = create_subscription<std_msgs::msg::Bool>(
+        "/cali", 10, [this](std_msgs::msg::Bool::UniquePtr &&) {
+          for (auto &i : chassis_steering_motors_)
+            RCLCPP_INFO(get_logger(), " %d", i.calibrate_zero_point());
+
+          RCLCPP_INFO(get_logger(), " %d",
+                      gimbal_yaw_motor_.calibrate_zero_point());
+        });
     for (auto &motor : chassis_wheel_motors_)
       motor.configure(DjiMotorConfig{DjiMotorType::M3508}
                           .reverse()
@@ -221,6 +233,8 @@ private:
       {*this, *sentry_below_command_, "/chassis/right_front_steering"}};
 
   OutputInterface<rmcs_description::Tf> tf_;
+
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr tmp_;
 
   RingBuffer<std::byte> referee_ring_buffer_receive_{256};
   OutputInterface<rmcs_msgs::SerialInterface> referee_serial_;

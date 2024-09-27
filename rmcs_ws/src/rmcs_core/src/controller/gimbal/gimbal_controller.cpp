@@ -8,9 +8,9 @@
 
 #include <eigen3/Eigen/src/Core/Matrix.h>
 #include <fast_tf/rcl.hpp>
-#include <game_stage.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
+#include <rmcs_msgs/game_stage.hpp>
 
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <rmcs_description/tf_description.hpp>

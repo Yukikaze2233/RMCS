@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include <game_stage.hpp>
 #include <limits>
+#include <rmcs_msgs/game_stage.hpp>
 
 #include <eigen3/Eigen/Dense>
 #include <fast_tf/rcl.hpp>
@@ -72,14 +72,15 @@ public:
       reset_all_controls();
     } else {
       if (switch_right != Switch::DOWN) {
-         if ((!last_keyboard_.v && keyboard.v) ||
-                 (last_switch_left_ == Switch::MIDDLE &&
-                  switch_left == Switch::UP)) {
+        if ((!last_keyboard_.v && keyboard.v) ||
+            (last_switch_left_ == Switch::MIDDLE &&
+             switch_left == Switch::UP)) {
           friction_enabled_ = !friction_enabled_;
         }
-        bullet_feeder_enabled_ =
-            ((*game_stage_ == GameStage::STARTED ||switch_right == Switch::UP) && *fire_controller_) ||
-            mouse.left || switch_left == Switch::DOWN;
+        bullet_feeder_enabled_ = ((*game_stage_ == GameStage::STARTED ||
+                                   switch_right == Switch::UP) &&
+                                  *fire_controller_) ||
+                                 mouse.left || switch_left == Switch::DOWN;
       }
       update_friction_velocities();
       update_bullet_feeder_velocity();

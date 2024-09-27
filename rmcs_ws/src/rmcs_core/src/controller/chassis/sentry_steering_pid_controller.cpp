@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cmath>
-#include <game_stage.hpp>
 #include <limits>
 #include <numbers>
+#include <rmcs_msgs/game_stage.hpp>
 
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Eigen>

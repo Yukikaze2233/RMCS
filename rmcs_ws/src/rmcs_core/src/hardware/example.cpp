@@ -26,9 +26,7 @@ public:
         sentry_above_command_(create_partner_component<SentryCommand>(
             get_component_name() + "_command", *this)),
         transmit_buffer_(*this, 16) {
-    using namespace device;
-
-    using namespace rmcs_description;
+    RCLCPP_INFO(logger_, "%s", get_parameter("data").as_string().c_str());
   }
 
   void update() override {

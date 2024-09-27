@@ -50,7 +50,8 @@
   <class type="rmcs_core::hardware::SentryAbove" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
-  <class type="rmcs_core::hardware::SentryBelow" base_class_type="rmcs_executor::Component">
-  <description>Test plugin.</description>
+  <!-- what we add is ... -->
+  <class type="rmcs_core::hardware::Sentry" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
   </class>
 </library>

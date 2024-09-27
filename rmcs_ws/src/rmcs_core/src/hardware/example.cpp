@@ -29,14 +29,6 @@ public:
     using namespace device;
 
     using namespace rmcs_description;
-
-    tf_->set_transform<PitchLink, ImuLink>(
-        Eigen::AngleAxisd{std::numbers::pi / 2, Eigen::Vector3d::UnitZ()});
-
-    constexpr double gimbal_center_height = 0.32059;
-
-    tf_->set_transform<BaseLink, GimbalCenterLink>(
-        Eigen::Translation3d{0, 0, gimbal_center_height});
   }
 
   void update() override {
@@ -89,12 +81,6 @@ private:
 
   // device::DjiMotor gimbal_pitch_motor_{*this, *sentry_above_command_,
   //  "/gimbal/pitch"};
-
-  struct alignas(8) ImuData {
-    int16_t x, y, z;
-  };
-
-  OutputInterface<rmcs_description::Tf> tf_;
 
   forwarder::CBoard::TransmitBuffer transmit_buffer_;
 };

@@ -10,6 +10,7 @@
 #include "hardware/device/dji_motor.hpp"
 #include "hardware/device/dr16.hpp"
 #include "hardware/device/imu.hpp"
+#include "hardware/endian_promise.hpp"
 #include "hardware/forwarder/cboard.hpp"
 
 namespace rmcs_core::hardware {
@@ -35,8 +36,8 @@ public:
 
   void command_update() {
     uint16_t can_commands[4];
-
-    can_commands[0] = 0;
+    be_uint16_t I = 100;
+    can_commands[0] = I;
     can_commands[1] = 0;
     can_commands[2] = 0;
     can_commands[3] = 0;
@@ -49,6 +50,7 @@ public:
 private:
 protected:
   void can1_receive_callback(uint32_t, uint64_t, bool, bool, uint8_t) override {
+    
   }
 
   void can2_receive_callback(uint32_t, uint64_t, bool, bool, uint8_t) override {
@@ -57,8 +59,6 @@ protected:
   void dbus_receive_callback(const std::byte *, uint8_t) override {}
 
   void accelerometer_receive_callback(int16_t, int16_t, int16_t) override {}
-
-  void gyroscope_receive_callback(int16_t, int16_t, int16_t) override {}
 
 private:
   rclcpp::Logger logger_;
